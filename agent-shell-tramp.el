@@ -65,9 +65,7 @@
 (defun agent-shell-tramp--advice-agent-shell (orig-fun &rest args)
   "Around advice for `agent-shell--start' to enable TRAMP / remote support."
   (cl-flet
-   ((executable-find (command &rest _)
-                     (apply #'executable-find
-                            `(,command ,(file-remote-p (agent-shell-cwd))))))
+   ((executable-find (command &rest _) (apply #'executable-find `(,command t))))
    (apply orig-fun args)))
 
 (defun agent-shell-remote-resolve-tramp-path (path)
