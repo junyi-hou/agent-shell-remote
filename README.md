@@ -2,6 +2,12 @@
 
 Running `agent-shell` on remote machines using Emacs TRAMP.
 
+## WIP: still testing
+
+I am having minor issues with this pacakge:
+- with ssh protocol, I am not able to find the acp (I use claude) on the remote despite it runs OK in eshell.
+- with tramp-rpc protocol, the acp is running in remote but the agent seems still running in the local environment (e.g., when I ask the project folder location, claude tells me it is /User/mac/project-local rather than /home/linux/project-remote).
+
 ## Description
 
 `agent-shell-tramp` is an Emacs package that extends `agent-shell` with TRAMP support. It allows you to run shell processes and manage files on remote hosts via TRAMP seamlessly, just as you would locally.
@@ -21,7 +27,7 @@ Clone this repository and add the path to your Emacs `load-path`:
 
 ```elisp
 (use-package agent-shell-tramp
-  ;; or :enable if using elpaca with use-package integration
+  ;; or :ensure if using elpaca with use-package integration
   :straight (:host github :repo "junyi-hou/agent-shell-remote")
   :config
   (agent-shell-tramp-mode 1))
