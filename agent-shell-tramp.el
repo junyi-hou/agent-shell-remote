@@ -43,31 +43,32 @@
         (let ((tramp-use-ssh-controlmaster-options 'suppress)
               (tramp-ssh-controlmaster-options
                "-o ControlMaster=no -o ControlPath=none"))
-          (cl-flet* ((make-process (&rest args)
-                       (let ((modified-args (copy-sequence args))
-                             (stderr-buffer
-                              (get-buffer-create
-                               (format "acp-client-stderr(%s)-%s"
-                                       (map-elt client :command)
-                                       (map-elt client :instance-count)))))
-                         (setq modified-args
-                               (plist-put modified-args :stderr stderr-buffer))
-                         ;; Ensure :file-handler is also set if you're on Tramp
-                         (setq modified-args (plist-put modified-args :file-handler t))
-                         (apply #'make-process modified-args)))
-                     (make-pipe-process (&rest args)
-                       nil)
-                     (executable-find (command &rest _)
-                       (apply #'executable-find `(,command t)))
-                     (tramp-direct-async-process-p (&rest _) nil))
-            (apply orig-fun args)))
+          (cl-flet*
+           ((make-process
+             (&rest args)
+             (let ((modified-args (copy-sequence args))
+                   (stderr-buffer
+                    (get-buffer-create
+                     (format "acp-client-stderr(%s)-%s"
+                             (map-elt client :command)
+                             (map-elt client :instance-count)))))
+               (setq modified-args (plist-put modified-args :stderr stderr-buffer))
+               ;; Ensure :file-handler is also set if you're on Tramp
+               (setq modified-args (plist-put modified-args :file-handler t))
+               (apply #'make-process modified-args)))
+            (make-pipe-process (&rest args) nil)
+            (executable-find (command &rest _) (apply #'executable-find `(,command t)))
+            (tramp-direct-async-process-p (&rest _) nil))
+           (apply orig-fun args)))
       (apply orig-fun args))))
 
 (defun agent-shell-tramp--advice-agent-shell (orig-fun &rest args)
   "Around advice for `agent-shell--start' to enable TRAMP / remote support."
-  (cl-flet ((executable-find (command &rest _)
-              (apply #'executable-find `(,command ,(file-remote-p (agent-shell-cwd))))))
-    (apply orig-fun args)))
+  (cl-flet
+   ((executable-find (command &rest _)
+                     (apply #'executable-find
+                            `(,command ,(file-remote-p (agent-shell-cwd))))))
+   (apply orig-fun args)))
 
 (defun agent-shell-remote-resolve-tramp-path (path)
   (let* ((cwd (agent-shell-cwd))
@@ -89,16 +90,22 @@
 (define-minor-mode agent-shell-tramp-mode
   "Minor mode to enable agent-shell TRAMP remote support."
   :global t
-  :group 'agent-shell
+  :group
+  'agent-shell
   (if agent-shell-tramp-mode
       (progn
         (advice-add #'acp--start-client :around #'agent-shell-tramp--advice-acp)
-        (advice-add #'agent-shell--start :around #'agent-shell-tramp--advice-agent-shell)
-        (setq agent-shell-remote--orig-path-resolver-function agent-shell-path-resolver-function
-              agent-shell-path-resolver-function #'agent-shell-remote-resolve-tramp-path))
+        (advice-add
+         #'agent-shell--start
+         :around #'agent-shell-tramp--advice-agent-shell)
+        (setq
+         agent-shell-remote--orig-path-resolver-function
+         agent-shell-path-resolver-function
+         agent-shell-path-resolver-function #'agent-shell-remote-resolve-tramp-path))
     (advice-remove #'acp--start-client #'agent-shell-tramp--advice-acp)
     (advice-remove #'agent-shell--start #'agent-shell-tramp--advice-agent-shell)
-    (setq agent-shell-path-resolver-function agent-shell-remote--orig-path-resolver-function)))
+    (setq agent-shell-path-resolver-function
+          agent-shell-remote--orig-path-resolver-function)))
 
 (provide 'agent-shell-tramp)
 ;;; agent-shell-tramp.el ends here
