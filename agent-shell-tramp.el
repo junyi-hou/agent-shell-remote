@@ -40,33 +40,36 @@
   "Around advice for `acp--start-client' to enable TRAMP / remote support."
   (let ((client (plist-get args :client)))
     (if (file-remote-p default-directory)
-        (let ((tramp-use-ssh-controlmaster-options 'suppress)
+        (let ((orig-make-process (symbol-function 'make-process))
+              (orig-executable-find (symbol-function 'executable-find))
+              (tramp-use-ssh-controlmaster-options 'suppress)
               (tramp-ssh-controlmaster-options
                "-o ControlMaster=no -o ControlPath=none"))
-          (cl-flet*
-           ((make-process
-             (&rest args)
-             (let ((modified-args (copy-sequence args))
-                   (stderr-buffer
-                    (get-buffer-create
-                     (format "acp-client-stderr(%s)-%s"
-                             (map-elt client :command)
-                             (map-elt client :instance-count)))))
-               (setq modified-args (plist-put modified-args :stderr stderr-buffer))
-               ;; Ensure :file-handler is also set if you're on Tramp
-               (setq modified-args (plist-put modified-args :file-handler t))
-               (apply #'make-process modified-args)))
-            (make-pipe-process (&rest args) nil)
-            (executable-find (command &rest _) (apply #'executable-find `(,command t)))
-            (tramp-direct-async-process-p (&rest _) nil))
-           (apply orig-fun args)))
+          (cl-letf
+           (((symbol-function 'make-process)
+             (lambda (&rest args)
+               (let ((modified-args (copy-sequence args))
+                     (stderr-buffer
+                      (get-buffer-create
+                       (format "acp-client-stderr(%s)-%s"
+                               (map-elt client :command)
+                               (map-elt client :instance-count)))))
+                 (setq modified-args (plist-put modified-args :stderr stderr-buffer))
+                 ;; Ensure :file-handler is also set if you're on Tramp
+                 (setq modified-args (plist-put modified-args :file-handler t))
+                 (apply orig-make-process modified-args))))
+            ((symbol-function 'make-pipe-process) (lambda (&rest args) nil))
+            ((symbol-function 'executable-find) (lambda (command &rest _) (funcall orig-executable-find command t)))
+            ((symbol-function 'tramp-direct-async-process-p) (lambda (&rest _) nil)))
+           (apply orig-fun args))))
       (apply orig-fun args))))
 
 (defun agent-shell-tramp--advice-agent-shell (orig-fun &rest args)
   "Around advice for `agent-shell--start' to enable TRAMP / remote support."
-  (cl-flet
-   ((executable-find (command &rest _) (apply #'executable-find `(,command t))))
-   (apply orig-fun args)))
+  (let ((orig-executable-find (symbol-function 'executable-find)))
+    (cl-letf
+     (((symbol-function 'executable-find) (lambda (command &rest _) (funcall orig-executable-find command t))))
+     (apply orig-fun args))))
 
 (defun agent-shell-remote-resolve-tramp-path (path)
   (let* ((cwd (agent-shell-cwd))

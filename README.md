@@ -5,8 +5,7 @@ Running `agent-shell` on remote machines using Emacs TRAMP.
 ## WIP: still testing
 
 I am having minor issues with this pacakge:
-- with ssh protocol, I am not able to find the acp (I use claude) on the remote despite it runs OK in eshell.
-- with tramp-rpc protocol, the acp is running in remote but the agent seems still running in the local environment (e.g., when I ask the project folder location, claude tells me it is /User/mac/project-local rather than /home/linux/project-remote).
+- for some reasons, it still uses the local claude-agent-acp, instead of the remote-one
 
 ## Description
 
