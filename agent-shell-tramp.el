@@ -67,8 +67,8 @@
                ((symbol-function 'executable-find)
                 (lambda (command &rest _) (funcall orig-executable-find command t)))
                ((symbol-function 'tramp-direct-async-process-p) (lambda (&rest _) nil)))
-            (apply orig-fun args))))
-    (apply orig-fun args)))
+            (apply orig-fun args)))
+      (apply orig-fun args))))
 
 (defun agent-shell-tramp--advice-agent-shell (orig-fun &rest args)
   "Around advice for `agent-shell--start' to enable TRAMP / remote support."
