@@ -46,16 +46,19 @@
           (cl-flet*
            ((make-process
              (&rest args)
-             (let ((modified-args (copy-sequence args))
-                   (stderr-buffer
-                    (get-buffer-create
-                     (format "acp-client-stderr(%s)-%s"
-                             (map-elt client :command)
-                             (map-elt client :instance-count)))))
-               (setq modified-args (plist-put modified-args :stderr stderr-buffer))
-               ;; Ensure :file-handler is also set if you're on Tramp
-               (setq modified-args (plist-put modified-args :file-handler t))
-               (apply #'make-process modified-args)))
+             (let ((process nil))
+               (let ((modified-args (copy-sequence args))
+                     (stderr-buffer
+                      (get-buffer-create
+                       (format
+                        "acp-client-stderr(%s)-%s"
+                        (map-elt client :command) (map-elt client :instance-count)))))
+                 (setq modified-args (plist-put modified-args :stderr stderr-buffer))
+                 ;; Ensure :file-handler is also set if you're on Tramp
+                 (setq modified-args (plist-put modified-args :file-handler t))
+                 (setq process (apply #'make-process modified-args))
+                 (accept-process-output process 0.1)
+                 process)))
             (make-pipe-process (&rest args) nil)
             (executable-find (command &rest _) (apply #'executable-find `(,command t)))
             (tramp-direct-async-process-p (&rest _) nil))
