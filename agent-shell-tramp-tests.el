@@ -38,6 +38,14 @@
                (lambda (_dir &optional _parents) nil)))
       (let ((result (agent-shell-tramp-transcript-dir)))
         (should (string-match-p "/.agent-shell/transcripts/host/remote_path/" result))
+        (should (string-match-p "\\.md$" result)))))
+
+  (let ((agent-shell-cwd-mock "/local/path"))
+    (cl-letf (((symbol-function 'agent-shell-cwd) (lambda () agent-shell-cwd-mock))
+              ((symbol-function 'make-directory)
+               (lambda (_dir &optional _parents) nil)))
+      (let ((result (agent-shell-tramp-transcript-dir)))
+        (should (string-match-p "/local/path/.agent-shell/transcripts/" result))
         (should (string-match-p "\\.md$" result))))))
 
 (ert-deftest agent-shell-tramp--make-acp-client-test ()
