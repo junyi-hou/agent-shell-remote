@@ -44,6 +44,7 @@
   (require 'subr-x))
 
 (require 'acp)
+(require 'tramp)
 (require 'agent-shell)
 
 (defgroup agent-shell-tramp nil
