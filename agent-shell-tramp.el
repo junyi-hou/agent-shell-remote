@@ -148,8 +148,8 @@ Ensures the directory exists before returning."
             (replace-regexp-in-string "/" "_" (string-trim localname "/" "/"))))
       ;; make sure that the directory exists
       (let ((transcript-dir
-             (expand-file-name
-              (format ".agent-shell/transcripts/%s/%s" host safe-path))))
+             (expand-file-name (format ".agent-shell/transcripts/%s/%s" host safe-path)
+                               (expand-file-name "~"))))
         (make-directory transcript-dir t)
         transcript-dir))))
 
