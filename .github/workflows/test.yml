@@ -1,0 +1,35 @@
+name: Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: purcell/setup-emacs@master
+      with:
+        version: 29.1
+
+    - name: Install dependencies
+      run: |
+        mkdir deps
+        cd deps
+        git clone https://github.com/xenodium/agent-shell
+        git clone https://github.com/xenodium/acp.el acp
+        cd ..
+
+    - name: Run tests
+      run: |
+        emacs -batch \
+          -L . \
+          -L deps/agent-shell \
+          -L deps/acp \
+          -l agent-shell-tramp.el \
+          -l agent-shell-tramp-tests.el \
+          -f ert-run-tests-batch-and-exit
