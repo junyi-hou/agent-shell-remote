@@ -22,6 +22,7 @@ jobs:
         cd deps
         git clone https://github.com/xenodium/agent-shell
         git clone https://github.com/xenodium/acp.el acp
+        git clone https://github.com/xenodium/shell-maker
         cd ..
 
     - name: Run tests
@@ -29,6 +30,7 @@ jobs:
         emacs -batch \
           -L . \
           -L deps/agent-shell \
+          -L deps/shell-maker \
           -L deps/acp \
           -l agent-shell-tramp.el \
           -l agent-shell-tramp-tests.el \
