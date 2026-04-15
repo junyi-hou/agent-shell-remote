@@ -159,14 +159,10 @@ Ensures the directory exists before returning."
 If the current context is remote, it uses a host-specific local directory.
 Otherwise, it uses the standard .agent-shell/transcripts directory relative
 to the current working directory."
-  (let* ((cwd (agent-shell-cwd))
-         (dir
-          (or (agent-shell-tramp--transcript-dir cwd)
-              ;; Local paths use project root as before
-              (expand-file-name ".agent-shell/transcripts" cwd)))
-         (filename (format-time-string "%F-%H-%M-%S.md"))
-         (filepath (expand-file-name filename dir)))
-    filepath))
+  (if-let* ((cwd (agent-shell-cwd))
+            (dir (agent-shell-tramp--transcript-dir cwd)))
+    (expand-file-name (format-time-string "%F-%H-%M-%S.md") dir)
+    (agent-shell--default-transcript-file-path)))
 
 (defvar agent-shell-tramp--orig-path-resolver-function nil)
 (defvar agent-shell-tramp--orig-transcript-file-path-function nil)
